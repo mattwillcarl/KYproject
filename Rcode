@@ -1,0 +1,38 @@
+#i've added both SQL-created datasets here into R for further analyses
+#here i merge those two datasets into one
+total <- merge(birth_data2, mammogram_data2, by="County")
+
+#i check the data to make sure the merge happened without issues
+head(total)
+
+#here i test the correlations between the original and standardized teen birth 
+## and mammogram variables to make sure my SQL z-scores were performed correctly
+cor(total$Teen_Birth_Rate,total$teenbirth_zscore)
+cor(total$X__With_Annual_Mammogram,total$reflmammogram_zscore)
+
+# here i test the correlation between the new standardized variables
+## recalling that the original correlation was around -.56
+cor(total$teenbirth_zscore,total$reflmammogram_zscore)
+
+#here i install the package 'car' so i can use its scatterplot function
+install.packages("car")
+library("car")
+
+#here i graph the correlation between teen births and mammograms (reflected)
+scatterplot(teenbirth_zscore ~ reflmammogram_zscore, data=total)
+
+#here i create a combined total variable of teen births and lack of mammograms
+##i can use this variable to select the top counties in need of intervention 
+##without the scores being adjusted by skewed base rates of teen births or 
+##mammograms
+total$combined_births_mammograms <- total$teenbirth_zscore+total$reflmammogram_zscore
+
+#here i list the top counties for combined teen birth rates and lack of mammograms
+head(total[order(total$combined_births_mammograms, decreasing=T),],n=3)
+
+#i just added another dataset so i can pull the vaccination numbers by county
+total2 <- merge(total, vaccinated, by="County")
+head(total2)
+
+#here i pull the vaccination rates for top three counties we previously identified
+head(total2[order(total2$combined_births_mammograms, decreasing=T),],n=3)
