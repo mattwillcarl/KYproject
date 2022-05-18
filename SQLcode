@@ -1,34 +1,38 @@
---finding counties--
+-- here i sort the counties by least mammograms to identify the top five counties in need of breast cancer screenings --
 SELECT County, MIN(__With_Annual_Mammogram) AS least_mammograms
   FROM `kyproject.rankedmeasure.ranked1` 
   GROUP BY County
   ORDER BY MIN (__With_Annual_Mammogram);
 
---identifying correlation--
+-- here i identify how correlated counties' rates of mammograms and teen births are --
 SELECT CORR (__With_Annual_Mammogram, Teen_Birth_Rate)
   FROM `kyproject.rankedmeasure.ranked1` ;
 
---creating mammogram z-score --
+--here i create a teen birth z-score which i'll use later to create a combined score of mammograms and teen births--
 SELECT
   County,
-  __With_Annual_Mammogram, 
-  avg(__With_Annual_Mammogram) over () as avg_mammograms,
-  stddev(__With_Annual_Mammogram) over () as std_mammograms,
-  (__With_Annual_Mammogram-avg(__With_Annual_Mammogram) over ())/stddev(__With_Annual_Mammogram) over () as mammograms_zscore
+Teen_Birth_Rate, 
+  avg(Teen_Birth_Rate) over () as avg_teenbirth,
+  stddev(Teen_Birth_Rate) over () as std_teenbirth,
+  (Teen_Birth_Rate-avg(Teen_Birth_Rate) over ())/stddev(Teen_Birth_Rate) over () as teenbirth_zscore
 FROM
   `kyproject.rankedmeasure.ranked1` ;
 
---creating reflected preg z-score-- 
+-- here i identify the max value of mammograms so i can create a reflected mammogram variable --
+SELECT MAX(__With_Annual_Mammogram)
+FROM   `kyproject.rankedmeasure.ranked1` ;
 
-SELECT County, Teen_Birth_Rate, 
-  Max(Teen_Birth_Rate) over () as max_birth,
-  avg(Teen_Birth_Rate) over () as avg_birth, 
-  60-Teen_Birth_Rate as refl_birth,
-  avg(60-Teen_Birth_Rate) over () as avg_reflbirth,
-  stddev(60-Teen_Birth_Rate) over () as std_reflbirth,
-  (60-Teen_Birth_Rate-avg(60-Teen_Birth_Rate) over ())/stddev(60-Teen_Birth_Rate) over () as reflbirth_zscore
+-- here i create a reflected mammogram z-score -- 
+
+SELECT County,__With_Annual_Mammogram, 
+  Max(__With_Annual_Mammogram) over () as max_mammogram,
+  avg(__With_Annual_Mammogram) over () as avg_mammogram, 
+54-__With_Annual_Mammogram as refl_mammogram,
+  avg(54-__With_Annual_Mammogram) over () as avg_reflmammogram,
+  stddev(54-__With_Annual_Mammogram) over () as std_reflmammogram,
+  (54-__With_Annual_Mammogram-avg(54-__With_Annual_Mammogram) over ())/stddev(54-__With_Annual_Mammogram) over () as reflmammogram_zscore
 FROM
   `kyproject.rankedmeasure.ranked1`
-  GROUP BY County, Teen_Birth_Rate;
+  GROUP BY County,__With_Annual_Mammogram;
 
-  -- saving the datasets locally and then opening then with R for further analysis--
+  -- i download both datasets from the z-score queries locally for further analysis in R --
