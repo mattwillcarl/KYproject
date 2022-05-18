@@ -1,0 +1,34 @@
+--finding counties--
+SELECT County, MIN(__With_Annual_Mammogram) AS least_mammograms
+  FROM `kyproject.rankedmeasure.ranked1` 
+  GROUP BY County
+  ORDER BY MIN (__With_Annual_Mammogram);
+
+--identifying correlation--
+SELECT CORR (__With_Annual_Mammogram, Teen_Birth_Rate)
+  FROM `kyproject.rankedmeasure.ranked1` ;
+
+--creating mammogram z-score --
+SELECT
+  County,
+  __With_Annual_Mammogram, 
+  avg(__With_Annual_Mammogram) over () as avg_mammograms,
+  stddev(__With_Annual_Mammogram) over () as std_mammograms,
+  (__With_Annual_Mammogram-avg(__With_Annual_Mammogram) over ())/stddev(__With_Annual_Mammogram) over () as mammograms_zscore
+FROM
+  `kyproject.rankedmeasure.ranked1` ;
+
+--creating reflected preg z-score-- 
+
+SELECT County, Teen_Birth_Rate, 
+  Max(Teen_Birth_Rate) over () as max_birth,
+  avg(Teen_Birth_Rate) over () as avg_birth, 
+  60-Teen_Birth_Rate as refl_birth,
+  avg(60-Teen_Birth_Rate) over () as avg_reflbirth,
+  stddev(60-Teen_Birth_Rate) over () as std_reflbirth,
+  (60-Teen_Birth_Rate-avg(60-Teen_Birth_Rate) over ())/stddev(60-Teen_Birth_Rate) over () as reflbirth_zscore
+FROM
+  `kyproject.rankedmeasure.ranked1`
+  GROUP BY County, Teen_Birth_Rate;
+
+  -- saving the datasets locally and then opening then with R for further analysis--
