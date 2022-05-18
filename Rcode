@@ -37,6 +37,13 @@ head(total2)
 #here i pull the vaccination rates for top three counties we previously identified
 head(total2[order(total2$combined_births_mammograms, decreasing=T),],n=3)
 
+#here i add a new column to signify the state the data is from
+##tableau sometimes runs into issues with county-level data if you 
+##do not tell it which state all the counties are in
+total2$State <- 'Kentucky'
+
+#here i double check that the column was added
+head(total2)
+
 #here i save the final dataset so that i can import it into tableau
 write.csv(total2,"C:\\Users\\mattw\\OneDrive\\Documents\\KY Healthcare Project\\total2.csv", row.names = FALSE)
-
